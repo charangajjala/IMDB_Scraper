@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_cors import cross_origin
 from selenium import webdriver
 from scraper import Scraper
@@ -28,7 +28,8 @@ def search():
     Scraper.openURL(main_url)
     kwd = request.json['kwd']
     type = request.json['type']
-    Scraper.search_keyword(kwd,type)
+    basic_details=Scraper.search_keyword(kwd,type)
+    return jsonify(basic_details)
  except Exception as e:
     print(e)
     raise e

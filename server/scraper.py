@@ -1,3 +1,4 @@
+from platform import release
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
@@ -53,10 +54,26 @@ class Scraper:
         search_button.click()
         type_tag = Locator.type_info[type]
         cls.openURL(
-            cls.url+Locator.type_info['type_url'].format(type_tag)+type_tag)
+            cls.url+Locator.type_info['type_url'].format(kwd,type_tag)+type_tag)
         first_a_tag = cls.findByXpath(Locator.first_title_path)
         cls.openURL(first_a_tag.get_attribute('href'))
+        basic_details = cls.getBasicDetials(type)
+        return basic_details
+
+    @classmethod
+    def getBasicDetials(cls,type):
+        Locator.set_page_top_path(type)
+        Locator.set_page_top_left_right_path(True)
+        title = cls.findByXpath(Locator.get_title_path(type))
+        release_time = cls.findByXpath(Locator.get_releasetime_path(type))
+        print(release_time)
+        return {'title': title.text, 'release_time': release_time.text}
+
 
     @classmethod
     def getException(cls, msg, err_msg=''):
         return Exception(f"{__class__.__name__}: {msg}\n{err_msg}")
+
+    
+
+    
