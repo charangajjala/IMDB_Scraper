@@ -46,7 +46,7 @@ class Locator:
     @classmethod
     def get_page_middle_path(cls, type=""):
         """if (type=="tv_episode"):
-           return f"{cls.top_path}//div[4]"
+        return f"{cls.top_path}//div[4]"
         else:
             return f"{cls.top_path}//div[3]" """
 
@@ -76,4 +76,14 @@ class Locator:
     @classmethod
     def get_releaseTime_path(cls):
         path = f"{cls.get_checkif_released_path()}//div[2]"
+        return path
+
+    @classmethod
+    def get_genre_path(cls):
+        path = f"{cls.get_middle_left_right_path('left')}//div[1]//div[1]//div[@class='ipc-chip-list__scroller']//a//span[@class='ipc-chip__text']"
+        return path
+
+    @classmethod
+    def get_description_path(cls, is_max_size):
+        path = f"//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[1]/div[2]/span[{3 if is_max_size else 2}]"
         return path
