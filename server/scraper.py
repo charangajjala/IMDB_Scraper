@@ -1,3 +1,5 @@
+from distutils.util import subst_vars
+from black import main
 from flask import abort
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -22,6 +24,8 @@ class Scraper:
     driver = DRIVER
     url = ""
     size = None
+    kwd = ""
+    type = ""
 
     def __init__(self):
         try:
@@ -74,7 +78,7 @@ class Scraper:
     @classmethod
     def findByClass(cls, cname):
         if cname is None:
-            cls.showException("findBycname: No cname available")
+            print("findBycname: No cname available")
             raise Exception("No cname available")
         try:
             print("searching path: " + cname)
@@ -97,7 +101,9 @@ class Scraper:
     @classmethod
     def findByXpathMany(cls, xpath):
         if xpath is None:
-            cls.showException("findByXpath: No xpath available")
+            print(
+                "findByXpath: No xpath available",
+            )
             raise Exception("No xpath available")
         try:
             elements = cls.driver.find_elements(By.XPATH, xpath)
@@ -113,25 +119,27 @@ class Scraper:
     @classmethod
     def search_keyword(cls, kwd, type):
         try:
+            cls.kwd = kwd
+            cls.type = type
             search_bar = cls.findByXpath(Locator.searchbox_path)
             search_bar.send_keys(kwd)
             search_button = cls.findByXpath(Locator.searchbutton_path)
             search_button.click()
-            cls.openURL(cls.get_urlfor_type(kwd, type))
+            cls.openURL(cls.get_urlfor_type())
             try:
                 first_a_tag = cls.findByXpath(Locator.first_title_path)
             except NoSuchElementException as e:
                 cls.showException("search_keyword: No results for search word", e)
                 raise MyException("404 Not Found", 404)
             cls.openURL(first_a_tag.get_attribute("href"))
-            basic_details = cls.getBasicDetials(type)
+            basic_details = cls.getBasicDetials()
             return basic_details
 
         except Exception as e:
             raise e
 
     @classmethod
-    def get_urlfor_type(cls, kwd, type):
+    def get_urlfor_type(cls):
 
         type_info = {
             "tv": "tv",
@@ -140,19 +148,21 @@ class Scraper:
             "movie": "ft",
             "type_url": "find?q={}&s=tt&ttype={}&ref_=fn_",
         }
-        type_tag = type_info[type]
-        return cls.url + type_info["type_url"].format(kwd, type_tag) + type_tag
+        type_tag = type_info[cls.type]
+        return cls.url + type_info["type_url"].format(cls.kwd, type_tag) + type_tag
 
     @classmethod
-    def getBasicDetials(cls, type):
+    def getBasicDetials(cls):
 
-        Locator.set_page_top_path(type)
+        Locator.set_page_top_path(cls.type)
         Locator.set_page_top_left_right_path(cls.check_if_released())
-        title = cls.findByXpath(Locator.get_title_path(type))
+        title = cls.findByXpath(Locator.get_title_path(cls.type))
         basic_details = {"title": title.text}
 
         if cls.check_if_released():
-            released_time = cls.findByXpath(Locator.get_releasedtime_path(type)).text
+            released_time = cls.findByXpath(
+                Locator.get_releasedtime_path(cls.type)
+            ).text
             basic_details["released"] = True
             basic_details["released_time"] = released_time
         else:
@@ -162,6 +172,8 @@ class Scraper:
 
         basic_details["genres"] = cls.get_genre()
         basic_details["description"] = cls.get_description()
+        if type != "tv_episode":
+            basic_details["authors"] = cls.get_authors()
 
         return basic_details
 
@@ -189,8 +201,15 @@ class Scraper:
     @classmethod
     def get_description(cls):
 
-        path = Locator.get_description_path(cls.is_max_size())
-        des = cls.findByXpath(path).text
+        des = ""
+        try:
+            path = Locator.get_description_path(cls.is_max_size(), cls.type)
+            des = cls.findByXpath(path).text
+        except NoSuchElementException as e:
+            path = Locator.get_description_path(
+                cls.is_max_size(), cls.type, give_alt=True
+            )
+            des = cls.findByXpath(path).text
         if not des:
             des = "No Description Available"
         return des
@@ -198,6 +217,23 @@ class Scraper:
     @classmethod
     def is_max_size(cls):
         return cls.driver.get_window_size() == cls.size
+
+    @classmethod
+    def get_authors(cls):
+        lists = cls.findByXpathMany(Locator.get_authors_path())
+        authors = []
+        print("authors", lists)
+        for i in range(len(lists)):
+            paths = Locator.get_author_paths(i + 1)
+            main_text = cls.findByXpath(paths[0]).text
+            final_text = main_text
+            try:
+                subst_text = cls.findByXpath(paths[1]).text
+                final_text = f"{main_text} {subst_text}"
+            except NoSuchElementException as e:
+                pass
+            authors.append(final_text)
+        return authors
 
     @classmethod
     def showException(cls, msg, err):

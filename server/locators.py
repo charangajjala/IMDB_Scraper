@@ -1,3 +1,6 @@
+from webbrowser import get
+
+
 class Locator:
 
     searchbox_path = "//input[@id='suggestion-search']"
@@ -84,6 +87,21 @@ class Locator:
         return path
 
     @classmethod
-    def get_description_path(cls, is_max_size):
-        path = f"//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[1]/div[2]/span[{3 if is_max_size else 2}]"
+    def get_description_path(cls, is_max_size, type, give_alt=False):
+        alt = "p" if give_alt else "div[2]"
+        path = f"//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[1]/{alt}/span[{3 if is_max_size else 2}]"
+
+        if type == "tv_episode":
+            path = f"//*[@id='__next']/main/div/section[1]/section/div[3]/section/section/div[4]/div[2]/div[1]/div[1]/{alt}/span[{3 if is_max_size else 2}]"
         return path
+
+    @classmethod
+    def get_authors_path(cls):
+        path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[3]/ul/li[1]/div/ul/li'
+        return path
+
+    @classmethod
+    def get_author_paths(cls, no_author):
+        path1 = f"{cls.get_authors_path()}[{no_author}]/a"
+        path2 = f"{cls.get_authors_path()}[{no_author}]/span"
+        return path1, path2
