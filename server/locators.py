@@ -96,12 +96,21 @@ class Locator:
         return path
 
     @classmethod
-    def get_authors_path(cls):
-        path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[3]/ul/li[1]/div/ul/li'
+    def get_authors_path(cls, for_writers=None, type=None):
+        path = f"{cls.get_persons_paths(type)}[{2 if for_writers else 1 if for_writers is None else 3}]/div/ul/li"
         return path
 
     @classmethod
-    def get_author_paths(cls, no_author):
-        path1 = f"{cls.get_authors_path()}[{no_author}]/a"
-        path2 = f"{cls.get_authors_path()}[{no_author}]/span"
+    def get_author_paths(cls, no_author, for_writers=None, type=None):
+        path1 = f"{cls.get_authors_path(for_writers,type=type)}[{no_author}]/a"
+        path2 = f"{cls.get_authors_path(for_writers,type=type)}[{no_author}]/span"
         return path1, path2
+
+    @classmethod
+    def get_persons_paths(cls, type):
+        path = ""
+        if type == "tv_episode":
+            path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[4]/div[2]/div[1]/div[3]/ul/li'
+        else:
+            path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[3]/ul/li'
+        return path
