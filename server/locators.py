@@ -1,5 +1,3 @@
-from webbrowser import get
-
 
 class Locator:
 
@@ -7,7 +5,7 @@ class Locator:
     searchbutton_path = "//button[@id='suggestion-search-button']"
     first_title_path = "//table[@class='findList']//tbody[1]//tr[1]//td[2]//a[1]"
 
-    top_path = "//section[@class='ipc-page-background ipc-page-background--baseAlt sc-910a7330-0 iZtLgL']//section[1]"
+    top_path = "//*[@id='__next']/main/div/section[1]/section/div[3]/section/section"
 
     page_top_path = ""
 
@@ -47,6 +45,23 @@ class Locator:
         return released_time_path
 
     @classmethod
+    def get_runtime_path(cls, type, num=None, is_techspec = False):
+        path = ""
+        if type != "tv_episode":
+
+            if num is not None:
+                path = f'//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li[{num}]'
+            else:
+                path = f'//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li'
+
+        else:
+            if is_techspec:
+                path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="TechSpecs"]/div[2]/ul/li[1]/div'
+            else:
+                path = f'//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[1]/div/ul/li[{num}]'
+        return path
+
+    @classmethod
     def get_page_middle_path(cls, type=""):
         """if (type=="tv_episode"):
         return f"{cls.top_path}//div[4]"
@@ -82,8 +97,10 @@ class Locator:
         return path
 
     @classmethod
-    def get_genre_path(cls):
-        path = f"{cls.get_middle_left_right_path('left')}//div[1]//div[1]//div[@class='ipc-chip-list__scroller']//a//span[@class='ipc-chip__text']"
+    def get_genre_path(cls,get_one=False,num=None):
+        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="Storyline"]/div[2]/ul[2]/li[@data-testid="storyline-genres"]/div/ul/li'
+        if get_one:
+            path = f'//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="Storyline"]/div[2]/ul[2]/li[@data-testid="storyline-genres"]/div/ul/li[{num}]/a'
         return path
 
     @classmethod

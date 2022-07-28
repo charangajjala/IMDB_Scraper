@@ -1,4 +1,5 @@
 from asyncio import base_futures
+from cProfile import run
 from distutils.util import subst_vars
 from black import main
 from flask import abort
@@ -154,18 +155,22 @@ class Scraper:
 
     @classmethod
     def getBasicDetials(cls):
-
-        Locator.set_page_top_path(cls.type)
-        Locator.set_page_top_left_right_path(cls.check_if_released())
-        title = cls.findByXpath(Locator.get_title_path(cls.type))
-        basic_details = {"title": title.text}
-
+        basic_details = {}
+        basic_details["title"] = cls.get_title()
+        basic_details.update(cls.get_runtime())
         basic_details["genres"] = cls.get_genre()
         basic_details["description"] = cls.get_description()
         basic_details.update(cls.get_release_end_details())
         basic_details.update(cls.get_all_persons())
 
         return basic_details
+
+    @classmethod
+    def get_title(cls):
+        Locator.set_page_top_path(cls.type)
+        Locator.set_page_top_left_right_path(cls.check_if_released())
+        title = cls.findByXpath(Locator.get_title_path(cls.type)).text
+        return title
 
     @classmethod
     def check_if_released(cls):
@@ -182,11 +187,42 @@ class Scraper:
         return cls.findByXpath(path).text
 
     @classmethod
+    def get_runtime(cls):
+        dict = {}
+        run_time = ""
+        if cls.check_if_released():
+            if cls.type != "tv_episode":
+                path = Locator.get_runtime_path(type=cls.type)
+                count = len(cls.findByXpathMany(path))
+                path = Locator.get_runtime_path(num=count,type=cls.type)
+                run_time = cls.findByXpath(path).text
+                if cls.type == "tv":
+                    run_time = f"{run_time} per episode"
+            else:
+                print("check_tech", "title-techspecs-section" in cls.driver.page_source)
+                if "title-techspecs-section" in cls.driver.page_source:
+                    path = Locator.get_runtime_path(type=cls.type, is_techspec=True)
+                    run_time = cls.findByXpath(path).text
+                else:
+                    path = Locator.get_runtime_path(type=cls.type, num=count)
+                    count = len(cls.findByXpathMany(path))
+                    run_time = cls.findByXpath(path).text
+            dict["run_time"] = run_time
+        else:
+            pass
+        return dict
+
+    @classmethod
     def get_genre(cls):
         path = Locator.get_genre_path()
         print("genre_path", path)
         elements = cls.findByXpathMany(path)
-        return [x.text for x in elements]
+        genres = []
+        for i in range(len(elements)):
+            path = Locator.get_genre_path(get_one=True, num=i + 1)
+            genre = cls.findByXpath(path).text
+            genres.append(genre)
+        return genres
 
     @classmethod
     def get_description(cls):
@@ -287,7 +323,7 @@ class Scraper:
                     dict["released_in"] = years[0]
                     dict["ended_in"] = years[1]
                 else:
-                    dict["released_in"] = year[0]
+                    dict["released_in"] = years[0]
             else:
                 dict["released_in"] = released_time
             dict["released"] = True
