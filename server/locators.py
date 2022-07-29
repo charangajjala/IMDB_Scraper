@@ -131,3 +131,10 @@ class Locator:
         else:
             path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div[1]/div[3]/ul/li'
         return path
+
+    @classmethod
+    def get_rating_path(cls,type):
+        path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
+        if type == 'tv_episode':
+            path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
+        return path

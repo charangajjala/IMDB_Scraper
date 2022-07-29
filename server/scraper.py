@@ -162,6 +162,7 @@ class Scraper:
         basic_details["description"] = cls.get_description()
         basic_details.update(cls.get_release_end_details())
         basic_details.update(cls.get_all_persons())
+        basic_details.update(cls.get_rating())
 
         return basic_details
 
@@ -194,7 +195,7 @@ class Scraper:
             if cls.type != "tv_episode":
                 path = Locator.get_runtime_path(type=cls.type)
                 count = len(cls.findByXpathMany(path))
-                path = Locator.get_runtime_path(num=count,type=cls.type)
+                path = Locator.get_runtime_path(num=count, type=cls.type)
                 run_time = cls.findByXpath(path).text
                 if cls.type == "tv":
                     run_time = f"{run_time} per episode"
@@ -217,6 +218,7 @@ class Scraper:
         path = Locator.get_genre_path()
         print("genre_path", path)
         elements = cls.findByXpathMany(path)
+        print("elements", elements)
         genres = []
         for i in range(len(elements)):
             path = Locator.get_genre_path(get_one=True, num=i + 1)
@@ -332,6 +334,26 @@ class Scraper:
             dict["released"] = False
 
         return dict
+
+    @classmethod
+    def get_rating(cls):
+        path = Locator.get_rating_path(type=cls.type)
+        element = cls.get_if_element_exits(path)
+        dict = {}
+        if element is not None:
+           print('rating',element.get_attribute('innerText'))
+        else:
+            print('rating',None)
+
+        return dict
+
+    def get_if_element_exits(xpath):
+        element = None
+        try:
+            element = Scraper.findByXpath(xpath)
+        except NoSuchElementException as e:
+            element = None
+        return element
 
     @classmethod
     def showException(cls, msg, err):
