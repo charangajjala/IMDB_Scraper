@@ -1,4 +1,3 @@
-
 class Locator:
 
     searchbox_path = "//input[@id='suggestion-search']"
@@ -137,4 +136,9 @@ class Locator:
         path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
         if type == 'tv_episode':
             path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
+        return path
+
+    @classmethod
+    def get_popularity_path(cls):
+        path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[@data-testid="hero-rating-bar__popularity"]/a/div/div/div[2]/div[1]'
         return path

@@ -63,9 +63,9 @@ class Scraper:
             print("searching path: " + xpath)
             element = cls.driver.find_element(By.XPATH, xpath)
 
-            """ element = WebDriverWait(cls.driver, 20).until(
+            """  element = WebDriverWait(cls.driver, 20).until(
                 EC.visibility_of_all_elements_located((By.XPATH, xpath))
-            )[0] """
+            )[0]  """
 
             print("got the webelement: " + str(element))
             return element
@@ -163,6 +163,7 @@ class Scraper:
         basic_details.update(cls.get_release_end_details())
         basic_details.update(cls.get_all_persons())
         basic_details.update(cls.get_rating())
+        basic_details["popularity"] = cls.get_popularity()
 
         return basic_details
 
@@ -341,11 +342,20 @@ class Scraper:
         element = cls.get_if_element_exits(path)
         dict = {}
         if element is not None:
-           print('rating',element.get_attribute('innerText'))
+            print("rating", element.get_attribute("innerText"))
+            text = element.get_attribute("innerText")
+            texts = text.split("\n")
+            dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[2]}
         else:
-            print('rating',None)
+            print("rating", None)
 
         return dict
+
+    @classmethod
+    def get_popularity(cls):
+        path = Locator.get_popularity_path()
+        element = cls.findByXpath(path)
+        return element.text
 
     def get_if_element_exits(xpath):
         element = None
