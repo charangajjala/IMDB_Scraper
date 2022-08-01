@@ -1,3 +1,6 @@
+from numpy import single
+
+
 class Locator:
 
     searchbox_path = "//input[@id='suggestion-search']"
@@ -142,3 +145,26 @@ class Locator:
     def get_popularity_path(cls):
         path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[@data-testid="hero-rating-bar__popularity"]/a/div/div/div[2]/div[1]'
         return path
+
+    @classmethod
+    def get_reviews_link_path(cls):
+        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="UserReviews"]/div[1]/a[1]'
+        return path
+
+    def single_review_path(num):
+        path = f'//*[@id="main"]/section/div[2]/div[@class="lister-list"]/div[{num}]'
+        return path
+
+    @classmethod
+    def get_review_detail_paths(cls,num=None):
+      if num is None:
+        count_path = '//*[@id="main"]/section/div[2]/div[@class="lister-list"]/div'
+        return count_path
+      single_review_path = Locator.single_review_path(num)
+      rating_path = f'{single_review_path}/div[1]/div[1]/div[@class="ipl-ratings-bar"]'
+      spoiler_path = f'{single_review_path}/div[1]/div[1]/span[@class="spoiler-warning"]'
+      title_path = f'{single_review_path}/div[1]/div[1]/a'
+      des_path = f'{single_review_path}/div[1]/div[1]/div[@class="content"]/div[1]'
+      name_date_path = f'{single_review_path}/div[1]/div[1]/div[@class="display-name-date"]'
+      helpfulness_path = f'{single_review_path}//div[@class="actions text-muted"]'
+      return {'rating_path':rating_path,'spoiler_path':spoiler_path,'name_date_path':name_date_path,'helpfulness_path':helpfulness_path,'title_path':title_path,'des_path':des_path,}

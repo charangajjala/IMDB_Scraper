@@ -1,8 +1,4 @@
-from asyncio import base_futures
-from cProfile import run
-from distutils.util import subst_vars
-from black import main
-from flask import abort
+from tkinter import N
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from locators import Locator
 from exception_handling import MyException
-from inspect import stack
+
 
 DRIVER = None
 chrome_executable_path = ChromeDriverManager().install()
@@ -29,15 +25,17 @@ class Scraper:
     kwd = ""
     type = ""
 
-    def __init__(self):
+    def __init__(self, url):
         try:
-            global DRIVER
-            DRIVER = webdriver.Chrome(
-                executable_path=chrome_executable_path, chrome_options=chrome_options
-            )
-            DRIVER.maximize_window()
-            Scraper.size = DRIVER.get_window_size()
-            Scraper.driver = DRIVER
+            if Scraper.driver is None:
+                DRIVER = webdriver.Chrome(
+                    executable_path=chrome_executable_path,
+                    chrome_options=chrome_options,
+                )
+                DRIVER.maximize_window()
+                Scraper.size = DRIVER.get_window_size()
+                Scraper.driver = DRIVER
+                Scraper.openURL(url)
 
         except Exception as e:
             Scraper.showException("Error in initialization of chromedriver", e)
@@ -46,7 +44,8 @@ class Scraper:
     @classmethod
     def openURL(cls, url):
         if cls.driver is None:
-            raise cls.getException("No driver available")
+            print("No driver available")
+            raise Exception("No xpath available")
         try:
             Scraper.url = url
             cls.driver.get(url)
@@ -366,5 +365,44 @@ class Scraper:
         return element
 
     @classmethod
-    def showException(cls, msg, err):
+    def get_review_details(cls, kwd, type):
+        if not (cls.kwd and cls.type and cls.kwd == kwd and cls.type == type):
+            cls.search_keyword(kwd, type)
+        link = cls.findByXpath(Locator.get_reviews_link_path()).get_attribute("href")
+        cls.openURL(link)
+        reviews = cls.findByXpathMany(Locator.get_review_detail_paths())
+        reviews_list = []
+        for i in range(len(reviews)):
+            review = {}
+            paths = Locator.get_review_detail_paths(num=i + 1)
+            rating = cls.get_if_element_exits(paths["rating_path"])
+            spoiler = cls.get_if_element_exits(paths["spoiler_path"])
+            review["rating"] = rating.text if rating else "Rating not available"
+            review["spoiler"] = spoiler.text if spoiler else "No spoilers"
+            review["title"] = cls.findByXpath(paths["title_path"]).text
+            description = cls.get_if_element_exits(paths["des_path"])
+            review["description"] = (
+                description.text if description else "No description available"
+            )
+            name_date = (
+                cls.findByXpath(paths["name_date_path"])
+                .get_attribute("innerText")
+                .split(" ")
+            )
+
+            review["username"] = name_date[0]
+            review["date"] = name_date[1]
+            helpfulness = (
+                cls.findByXpath(paths["helpfulness_path"])
+                .get_attribute("innerText")
+                .split(" ")
+            )
+            review["helped_votes"] = helpfulness[0]
+            review["total_votes"] = helpfulness[3]
+
+            reviews_list.append(review)
+        return reviews_list
+
+    @classmethod
+    def showException(cls, msg, err=""):
         print(f"{__class__.__name__}: {msg}\n{str(err)}")

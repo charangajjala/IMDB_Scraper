@@ -25,12 +25,19 @@ def getPageSource():
 @app.route("/search", methods=["POST"])
 @cross_origin()
 def search():
-    Scraper()
-    Scraper.openURL(main_url)
+    Scraper(main_url)
     kwd = request.json["kwd"]
     type = request.json["type"]
     basic_details = Scraper.search_keyword(kwd, type)
     return jsonify(basic_details)
+
+
+@app.route("/reviews/<kwd>/<type>")
+@cross_origin()
+def reviews(kwd, type):
+    Scraper(main_url)
+    reviews = Scraper.get_review_details(kwd, type)
+    return jsonify(reviews)
 
 
 @app.errorhandler(MyException)
