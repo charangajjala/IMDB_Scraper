@@ -1,41 +1,51 @@
-from tkinter import N
+import time
+from black import main
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from locators import Locator
 from exception_handling import MyException
 
 
-DRIVER = None
 chrome_executable_path = ChromeDriverManager().install()
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("disable-dev-shm-usage")
 
+kwd = None
+type = None
+driver = None
+url = None
+
+main_url = "https://www.imdb.com/"
+
 
 class Scraper:
 
-    driver = DRIVER
     url = ""
     size = None
     kwd = ""
     type = ""
+    driver = None
 
-    def __init__(self, url):
+    def __init__(self, urll):
+        global driver, url
         try:
-            if Scraper.driver is None:
-                DRIVER = webdriver.Chrome(
-                    executable_path=chrome_executable_path,
-                    chrome_options=chrome_options,
-                )
-                DRIVER.maximize_window()
-                Scraper.size = DRIVER.get_window_size()
-                Scraper.driver = DRIVER
-                Scraper.openURL(url)
+            DRIVER = webdriver.Chrome(
+                executable_path=chrome_executable_path,
+                chrome_options=chrome_options,
+            )
+            DRIVER.maximize_window()
+            Scraper.size = DRIVER.get_window_size()
+            driver = DRIVER
+            Scraper.driver = DRIVER
+            Scraper.openURL(urll)
+            url = urll
+            Scraper.url = urll
 
         except Exception as e:
             Scraper.showException("Error in initialization of chromedriver", e)
@@ -107,6 +117,7 @@ class Scraper:
             )
             raise Exception("No xpath available")
         try:
+            time.sleep(2)
             elements = cls.driver.find_elements(By.XPATH, xpath)
             print("Searching:", xpath, elements)
             return elements
@@ -118,10 +129,22 @@ class Scraper:
             raise e
 
     @classmethod
-    def search_keyword(cls, kwd, type):
+    def search_keyword(
+        cls,
+        kwdd,
+        typee,
+    ):
+        global main_url
+        if driver:
+            driver.close()
+        Scraper(main_url)
         try:
-            cls.kwd = kwd
-            cls.type = type
+            cls.kwd = kwdd
+            cls.type = typee
+            global kwd
+            global type
+            kwd = kwdd
+            type = typee
             search_bar = cls.findByXpath(Locator.searchbox_path)
             search_bar.send_keys(kwd)
             search_button = cls.findByXpath(Locator.searchbutton_path)
@@ -365,43 +388,63 @@ class Scraper:
         return element
 
     @classmethod
-    def get_review_details(cls, kwd, type):
-        if not (cls.kwd and cls.type and cls.kwd == kwd and cls.type == type):
-            cls.search_keyword(kwd, type)
-        link = cls.findByXpath(Locator.get_reviews_link_path()).get_attribute("href")
-        cls.openURL(link)
-        reviews = cls.findByXpathMany(Locator.get_review_detail_paths())
-        reviews_list = []
-        for i in range(len(reviews)):
-            review = {}
-            paths = Locator.get_review_detail_paths(num=i + 1)
-            rating = cls.get_if_element_exits(paths["rating_path"])
-            spoiler = cls.get_if_element_exits(paths["spoiler_path"])
-            review["rating"] = rating.text if rating else "Rating not available"
-            review["spoiler"] = spoiler.text if spoiler else "No spoilers"
-            review["title"] = cls.findByXpath(paths["title_path"]).text
-            description = cls.get_if_element_exits(paths["des_path"])
-            review["description"] = (
-                description.text if description else "No description available"
-            )
-            name_date = (
-                cls.findByXpath(paths["name_date_path"])
-                .get_attribute("innerText")
-                .split(" ")
-            )
+    def get_review_details(cls, kwdd, typee):
+        global driver, url
+        global main_url
+        global kwd
+        global type
 
-            review["username"] = name_date[0]
-            review["date"] = name_date[1]
-            helpfulness = (
-                cls.findByXpath(paths["helpfulness_path"])
-                .get_attribute("innerText")
-                .split(" ")
-            )
-            review["helped_votes"] = helpfulness[0]
-            review["total_votes"] = helpfulness[3]
+        print("kwd", kwd, "type", type)
+        if not (kwd and type and kwd == kwdd and type == typee):
+            cls.search_keyword(kwdd, typee)
 
-            reviews_list.append(review)
-        return reviews_list
+        try:
+            link = cls.get_if_element_exits(Locator.get_reviews_link_path())
+            if link:
+                cls.openURL(link.get_attribute("href"))
+            reviews = cls.findByXpathMany(Locator.get_review_detail_paths())
+            reviews_list = []
+            for i in range(len(reviews)):
+                review = {}
+                paths = Locator.get_review_detail_paths(num=i + 1)
+                rating = cls.get_if_element_exits(paths["rating_path"])
+                spoiler = cls.get_if_element_exits(paths["spoiler_path"])
+                review["rating"] = rating.text if rating else "Rating not available"
+                review["spoiler"] = spoiler.text if spoiler else "No spoilers"
+                review["title"] = cls.findByXpath(paths["title_path"]).text
+                description = cls.get_if_element_exits(paths["des_path"])
+                review["description"] = (
+                    description.text if description else "No description available"
+                )
+                name_date = (
+                    cls.findByXpath(paths["name_date_path"])
+                    .get_attribute("innerText")
+                    .split(" ")
+                )
+                print("new_date", name_date)
+                last_two = name_date[0][len(name_date[0]) - 2 :]
+                date = last_two if last_two.isdigit() else last_two[1]
+                review["name"] = (
+                    name_date[0][: len(name_date[0]) - 2]
+                    if last_two.isdigit()
+                    else name_date[0][: len(name_date[0]) - 1]
+                )
+                review["date"] = f"{date} {name_date[1]} {name_date[2]} "
+                helpfulness = (
+                    cls.findByXpath(paths["helpfulness_path"])
+                    .get_attribute("innerText")
+                    .split(" ")
+                )
+                review["helped_votes"] = helpfulness[0]
+                review["total_votes"] = helpfulness[3]
+
+                reviews_list.append(review)
+            return reviews_list
+        except WebDriverException as e:
+            driver = None
+            kwd = None
+            type = None
+            cls.get_review_details(kwdd, typee)
 
     @classmethod
     def showException(cls, msg, err=""):

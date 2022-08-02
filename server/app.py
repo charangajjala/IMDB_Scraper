@@ -25,7 +25,6 @@ def getPageSource():
 @app.route("/search", methods=["POST"])
 @cross_origin()
 def search():
-    Scraper(main_url)
     kwd = request.json["kwd"]
     type = request.json["type"]
     basic_details = Scraper.search_keyword(kwd, type)
@@ -35,7 +34,6 @@ def search():
 @app.route("/reviews/<kwd>/<type>")
 @cross_origin()
 def reviews(kwd, type):
-    Scraper(main_url)
     reviews = Scraper.get_review_details(kwd, type)
     return jsonify(reviews)
 
