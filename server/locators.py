@@ -1,3 +1,5 @@
+from turtle import title
+
 
 class Locator:
 
@@ -45,7 +47,7 @@ class Locator:
         return released_time_path
 
     @classmethod
-    def get_runtime_path(cls, type, num=None, is_techspec = False):
+    def get_runtime_path(cls, type, num=None, is_techspec=False):
         path = ""
         if type != "tv_episode":
 
@@ -97,7 +99,7 @@ class Locator:
         return path
 
     @classmethod
-    def get_genre_path(cls,get_one=False,num=None):
+    def get_genre_path(cls, get_one=False, num=None):
         path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="Storyline"]/div[2]/ul[2]/li[@data-testid="storyline-genres"]/div/ul/li'
         if get_one:
             path = f'//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="Storyline"]/div[2]/ul[2]/li[@data-testid="storyline-genres"]/div/ul/li[{num}]/a'
@@ -133,9 +135,9 @@ class Locator:
         return path
 
     @classmethod
-    def get_rating_path(cls,type):
+    def get_rating_path(cls, type):
         path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[2]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
-        if type == 'tv_episode':
+        if type == "tv_episode":
             path = '//*[@id="__next"]/main/div/section[1]/section/div[3]/section/section/div[3]/div[2]/div/div[@data-testid="hero-rating-bar__aggregate-rating"]/a/div/div/div[2]'
         return path
 
@@ -154,15 +156,38 @@ class Locator:
         return path
 
     @classmethod
-    def get_review_detail_paths(cls,num=None):
-      if num is None:
-        count_path = '//*[@id="main"]/section/div[2]/div[@class="lister-list"]/div'
-        return count_path
-      single_review_path = Locator.single_review_path(num)
-      rating_path = f'{single_review_path}/div[1]/div[1]/div[@class="ipl-ratings-bar"]'
-      spoiler_path = f'{single_review_path}/div[1]/div[1]/span[@class="spoiler-warning"]'
-      title_path = f'{single_review_path}/div[1]/div[1]/a'
-      des_path = f'{single_review_path}/div[1]/div[1]/div[@class="content"]/div[1]'
-      name_date_path = f'{single_review_path}/div[1]/div[1]/div[@class="display-name-date"]'
-      helpfulness_path = f'{single_review_path}//div[@class="actions text-muted"]'
-      return {'rating_path':rating_path,'spoiler_path':spoiler_path,'name_date_path':name_date_path,'helpfulness_path':helpfulness_path,'title_path':title_path,'des_path':des_path,}
+    def get_review_detail_paths(cls, num=None):
+        if num is None:
+            count_path = '//*[@id="main"]/section/div[2]/div[@class="lister-list"]/div'
+            return count_path
+        single_review_path = Locator.single_review_path(num)
+        rating_path = (
+            f'{single_review_path}/div[1]/div[1]/div[@class="ipl-ratings-bar"]'
+        )
+        spoiler_path = (
+            f'{single_review_path}/div[1]/div[1]/span[@class="spoiler-warning"]'
+        )
+        title_path = f"{single_review_path}/div[1]/div[1]/a"
+        des_path = f'{single_review_path}/div[1]/div[1]/div[@class="content"]/div[1]'
+        name_date_path = (
+            f'{single_review_path}/div[1]/div[1]/div[@class="display-name-date"]'
+        )
+        helpfulness_path = f'{single_review_path}//div[@class="actions text-muted"]'
+        return {
+            "rating_path": rating_path,
+            "spoiler_path": spoiler_path,
+            "name_date_path": name_date_path,
+            "helpfulness_path": helpfulness_path,
+            "title_path": title_path,
+            "des_path": des_path,
+        }
+
+    @classmethod
+    def get_popularities_paths(cls, num=None):
+        if num is None:
+            return '//*[@id="main"]/div/span/div/div/div[3]/table/tbody[@class="lister-list"]/tr'
+        path = f'//*[@id="main"]/div/span/div/div/div[3]/table/tbody[@class="lister-list"]/tr[{num}]'
+        title_path = f"{path}/td[2]"
+        rating_path = f"{path}/td[3]"
+        change_path = f"{title_path}//div/span/span"
+        return {"rating_path": rating_path, "title_path": title_path,'change_path':change_path}

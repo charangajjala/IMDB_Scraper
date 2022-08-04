@@ -1,5 +1,7 @@
+from re import T
 import time
 from black import main
+from regex import W
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,6 +24,7 @@ driver = None
 url = None
 
 main_url = "https://www.imdb.com/"
+on_searched = None
 
 
 class Scraper:
@@ -134,7 +137,7 @@ class Scraper:
         kwdd,
         typee,
     ):
-        global main_url
+        global main_url, on_searched, driver
         if driver:
             driver.close()
         Scraper(main_url)
@@ -157,7 +160,17 @@ class Scraper:
                 raise MyException("404 Not Found", 404)
             cls.openURL(first_a_tag.get_attribute("href"))
             basic_details = cls.getBasicDetials()
+            on_searched = True
             return basic_details
+
+        except NoSuchElementException as e:
+            raise e
+
+        except WebDriverException as e:
+            driver = None
+            kwd = None
+            type = None
+            cls.search_keyword(kwdd, typee)
 
         except Exception as e:
             raise e
@@ -185,7 +198,7 @@ class Scraper:
         basic_details.update(cls.get_release_end_details())
         basic_details.update(cls.get_all_persons())
         basic_details.update(cls.get_rating())
-        basic_details["popularity"] = cls.get_popularity()
+        basic_details.update(cls.get_popularity())
 
         return basic_details
 
@@ -376,8 +389,11 @@ class Scraper:
     @classmethod
     def get_popularity(cls):
         path = Locator.get_popularity_path()
-        element = cls.findByXpath(path)
-        return element.text
+        element = cls.get_if_element_exits(path)
+        dict = {}
+        if element is not None:
+            dict["popularity"] = element.text
+        return dict
 
     def get_if_element_exits(xpath):
         element = None
@@ -395,7 +411,7 @@ class Scraper:
         global type
 
         print("kwd", kwd, "type", type)
-        if not (kwd and type and kwd == kwdd and type == typee):
+        if not Scraper.check_if_same_search(kwdd, type):
             cls.search_keyword(kwdd, typee)
 
         try:
@@ -440,11 +456,80 @@ class Scraper:
 
                 reviews_list.append(review)
             return reviews_list
+
+        except NoSuchElementException as e:
+            raise e
+
         except WebDriverException as e:
             driver = None
             kwd = None
             type = None
             cls.get_review_details(kwdd, typee)
+
+    @classmethod
+    def get_popularities(cls, kwdd, typee):
+        global driver, kwd, type
+        if typee == "tv_episode":
+            raise MyException("No popularity for episodes", 404)
+        if not Scraper.check_if_same_search(kwdd, typee):
+            cls.search_keyword(kwdd, typee)
+        try:
+            cls.openURL(
+                f"https://www.imdb.com/chart/{typee}meter/?sort=rk,asc&mode=simple&page=1"
+            )
+            pops = cls.findByXpathMany(Locator.get_popularities_paths())
+            pops_list = []
+            for i in range(len(pops)):
+                paths = Locator.get_popularities_paths(i + 1)
+                title, rank_info = (
+                    cls.findByXpath(paths["title_path"])
+                    .get_attribute("innerText")
+                    .split("\n")
+                )
+                print("rank_info", rank_info.split(" "))
+                rank = rank_info.split(" ")[0]
+                rating = cls.findByXpath(paths["rating_path"]).get_attribute(
+                    "innerText"
+                )
+                pop = {"rating": rating, "title": title, "rank": rank}
+                change_ele = cls.get_if_element_exits(paths["change_path"])
+                if change_ele:
+                    class_name = change_ele.get_attribute("class")
+                    change = rank_info.split(" ")[3].replace(")", "")
+                    pop["change"] = (
+                        f"Increased by {change}"
+                        if "up" in class_name
+                        else f"Decreased by {change}"
+                    )
+                else:
+                    pop["change"] = "No change"
+
+                pops_list.append(pop)
+            return pops_list
+
+        except NoSuchElementException as e:
+            raise e
+
+        except WebDriverException as e:
+            driver = None
+            kwd = None
+            type = None
+            cls.get_popularities(kwdd, typee)
+            cls.showException("WebDriverException")
+
+        except Exception as e:
+            raise e
+
+    def check_if_same_search(kwdd, typee):
+        global kwd, type, driver
+        return (
+            kwd is not None
+            and type is not None
+            and driver is not None
+            and kwd == kwdd
+            and type == typee
+            and on_searched is True
+        )
 
     @classmethod
     def showException(cls, msg, err=""):
