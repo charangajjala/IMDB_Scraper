@@ -199,6 +199,7 @@ class Scraper:
         basic_details.update(cls.get_all_persons())
         basic_details.update(cls.get_rating())
         basic_details.update(cls.get_popularity())
+        basic_details.update(cls.get_top_rating())
 
         return basic_details
 
@@ -477,10 +478,10 @@ class Scraper:
             cls.openURL(
                 f"https://www.imdb.com/chart/{typee}meter/?sort=rk,asc&mode=simple&page=1"
             )
-            pops = cls.findByXpathMany(Locator.get_popularities_paths())
+            pops = cls.findByXpathMany(Locator.get_topshows_paths())
             pops_list = []
             for i in range(len(pops)):
-                paths = Locator.get_popularities_paths(i + 1)
+                paths = Locator.get_topshows_paths(i + 1)
                 title, rank_info = (
                     cls.findByXpath(paths["title_path"])
                     .get_attribute("innerText")
@@ -515,6 +516,56 @@ class Scraper:
             kwd = None
             type = None
             cls.get_popularities(kwdd, typee)
+            cls.showException("WebDriverException")
+
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_top_rating(cls):
+        dict = {}
+        element = cls.get_if_element_exits(Locator.get_top_rating_path())
+        if element is not None:
+            dict["top_rating"] = element.get_attribute("innerText").split(" ")[3]
+        return dict
+
+    @classmethod
+    def get_toprated_shows(cls, kwdd, typee):
+        global driver, kwd, type
+        if typee == "tv_episode":
+            raise MyException("No top ratings for episodes", 404)
+        if not Scraper.check_if_same_search(kwdd, typee):
+            cls.search_keyword(kwdd, typee)
+        try:
+            cls.openURL(
+                f"https://www.imdb.com/chart/top{typee if typee=='tv' else ''}?ref_=tt_awd"
+            )
+            shows = cls.findByXpathMany(Locator.get_topshows_paths())
+            shows_list = []
+            for i in range(len(shows)):
+                paths = Locator.get_topshows_paths(i + 1)
+                title_info = cls.findByXpath(paths["title_path"]).get_attribute(
+                    "innerText"
+                )
+                print('title_info', title_info)
+                rank, title = title_info.split(" ",1)
+                title = title.strip()
+                rank = rank.replace(".", "")
+                rating = cls.findByXpath(paths["rating_path"]).get_attribute(
+                    "innerText"
+                )
+                show = {"rating": rating, "title": title, "rank": rank}
+                shows_list.append(show)
+            return shows_list
+
+        except NoSuchElementException as e:
+            raise e
+
+        except WebDriverException as e:
+            driver = None
+            kwd = None
+            type = None
+            cls.get_toprated_shows(kwdd, typee)
             cls.showException("WebDriverException")
 
         except Exception as e:

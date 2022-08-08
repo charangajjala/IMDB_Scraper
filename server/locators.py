@@ -183,7 +183,7 @@ class Locator:
         }
 
     @classmethod
-    def get_popularities_paths(cls, num=None):
+    def get_topshows_paths(cls, num=None):
         if num is None:
             return '//*[@id="main"]/div/span/div/div/div[3]/table/tbody[@class="lister-list"]/tr'
         path = f'//*[@id="main"]/div/span/div/div/div[3]/table/tbody[@class="lister-list"]/tr[{num}]'
@@ -191,3 +191,11 @@ class Locator:
         rating_path = f"{path}/td[3]"
         change_path = f"{title_path}//div/span/span"
         return {"rating_path": rating_path, "title_path": title_path,'change_path':change_path}
+
+    @classmethod
+    def get_top_rating_path(cls):
+        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[1]/div[@data-testid="awards"]/div'
+        return path
+
+
+

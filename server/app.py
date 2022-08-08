@@ -37,12 +37,17 @@ def reviews(kwd, type):
     reviews = Scraper.get_review_details(kwd, type)
     return jsonify(reviews)
 
-@app.route("/popularities/<kwd>/<type>")
+@app.route("/toppopularities/<kwd>/<type>")
 @cross_origin()
 def popularities(kwd, type):
     popularities = Scraper.get_popularities(kwd, type)
     return jsonify(popularities)
 
+@app.route("/toprated/<kwd>/<type>")
+@cross_origin()
+def top_shows(kwd, type):
+    shows = Scraper.get_toprated_shows(kwd, type)
+    return jsonify(shows)
 
 
 @app.errorhandler(MyException)
