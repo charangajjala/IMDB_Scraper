@@ -159,7 +159,8 @@ class Locator:
     def get_review_detail_paths(cls, num=None):
         if num is None:
             count_path = '//*[@id="main"]/section/div[2]/div[@class="lister-list"]/div'
-            return count_path
+            load_more_path = '//*[@id="main"]/section/div[2]/div[@class="load-more-data"]/div/button'
+            return {'count_path': count_path,'load_more_path': load_more_path}
         single_review_path = Locator.single_review_path(num)
         rating_path = (
             f'{single_review_path}/div[1]/div[1]/div[@class="ipl-ratings-bar"]'
@@ -173,6 +174,7 @@ class Locator:
             f'{single_review_path}/div[1]/div[1]/div[@class="display-name-date"]'
         )
         helpfulness_path = f'{single_review_path}//div[@class="actions text-muted"]'
+        
         return {
             "rating_path": rating_path,
             "spoiler_path": spoiler_path,
@@ -180,6 +182,7 @@ class Locator:
             "helpfulness_path": helpfulness_path,
             "title_path": title_path,
             "des_path": des_path,
+            "single_review_path": single_review_path,
         }
 
     @classmethod
@@ -190,12 +193,13 @@ class Locator:
         title_path = f"{path}/td[2]"
         rating_path = f"{path}/td[3]"
         change_path = f"{title_path}//div/span/span"
-        return {"rating_path": rating_path, "title_path": title_path,'change_path':change_path}
+        return {
+            "rating_path": rating_path,
+            "title_path": title_path,
+            "change_path": change_path,
+        }
 
     @classmethod
     def get_top_rating_path(cls):
         path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[1]/div[@data-testid="awards"]/div'
         return path
-
-
-

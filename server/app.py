@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import cross_origin
-from selenium import webdriver
 from scraper import Scraper
-from exception_handling import MyException, error_handler
+from exception_handling import MyException, error_handler, request_validation
 
 
 app = Flask(__name__)
@@ -25,27 +24,39 @@ def getPageSource():
 @app.route("/search", methods=["POST"])
 @cross_origin()
 def search():
-    kwd = request.json["kwd"]
-    type = request.json["type"]
+    kwd = request.json.get("kwd")
+    type = request.json.get("type")
+    request_validation(kwd, type)
     basic_details = Scraper.search_keyword(kwd, type)
     return jsonify(basic_details)
 
 
-@app.route("/reviews/<kwd>/<type>")
+@app.route("/reviews/<kwd>/<type>", methods=["POST"])
 @cross_origin()
 def reviews(kwd, type):
-    reviews = Scraper.get_review_details(kwd, type)
+    num_reviews = request.json.get("num")
+    request_validation(kwd, type)
+    if num_reviews is not None:
+        if isinstance(num_reviews, str):
+            raise MyException("Number of reviews must not be a string", 400)
+        elif num_reviews <= 0:
+            raise MyException("Number of reviews should be greater than zero", 400)
+    reviews = Scraper.get_review_details(kwd, type, num_reviews)
     return jsonify(reviews)
+
 
 @app.route("/toppopularities/<kwd>/<type>")
 @cross_origin()
 def popularities(kwd, type):
+    request_validation(kwd, type)
     popularities = Scraper.get_popularities(kwd, type)
     return jsonify(popularities)
+
 
 @app.route("/toprated/<kwd>/<type>")
 @cross_origin()
 def top_shows(kwd, type):
+    request_validation(kwd, type)
     shows = Scraper.get_toprated_shows(kwd, type)
     return jsonify(shows)
 

@@ -1,10 +1,10 @@
-from re import T
 import time
 from black import main
 from regex import W
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
@@ -67,18 +67,18 @@ class Scraper:
             raise e
 
     @classmethod
-    def findByXpath(cls, xpath):
+    def findByXpath(cls, xpath, with_wait=False):
         if xpath is None:
             cls.showException("findByXpath: No xpath available")
             raise Exception("No xpath available")
         try:
             print("searching path: " + xpath)
+
+            if with_wait:
+                WebDriverWait(cls.driver, 20).until(
+                    EC.presence_of_element_located((By.XPATH, xpath))
+                )
             element = cls.driver.find_element(By.XPATH, xpath)
-
-            """  element = WebDriverWait(cls.driver, 20).until(
-                EC.visibility_of_all_elements_located((By.XPATH, xpath))
-            )[0]  """
-
             print("got the webelement: " + str(element))
             return element
 
@@ -120,7 +120,7 @@ class Scraper:
             )
             raise Exception("No xpath available")
         try:
-            time.sleep(2)
+            time.sleep(0.5)
             elements = cls.driver.find_elements(By.XPATH, xpath)
             print("Searching:", xpath, elements)
             return elements
@@ -396,67 +396,82 @@ class Scraper:
             dict["popularity"] = element.text
         return dict
 
-    def get_if_element_exits(xpath):
+    def get_if_element_exits(xpath, with_wait=False):
         element = None
         try:
-            element = Scraper.findByXpath(xpath)
+            element = Scraper.findByXpath(xpath, with_wait=with_wait)
         except NoSuchElementException as e:
             element = None
         return element
 
     @classmethod
-    def get_review_details(cls, kwdd, typee):
-        global driver, url
-        global main_url
-        global kwd
-        global type
+    def get_review_details(cls, kwdd, typee, num_reviews):
+        global driver, url, on_searched, main_url, kwd, type
 
-        print("kwd", kwd, "type", type)
         if not Scraper.check_if_same_search(kwdd, type):
             cls.search_keyword(kwdd, typee)
 
+        reviews_list = []
+        up_to = []
         try:
+
             link = cls.get_if_element_exits(Locator.get_reviews_link_path())
+
             if link:
                 cls.openURL(link.get_attribute("href"))
-            reviews = cls.findByXpathMany(Locator.get_review_detail_paths())
-            reviews_list = []
-            for i in range(len(reviews)):
-                review = {}
-                paths = Locator.get_review_detail_paths(num=i + 1)
-                rating = cls.get_if_element_exits(paths["rating_path"])
-                spoiler = cls.get_if_element_exits(paths["spoiler_path"])
-                review["rating"] = rating.text if rating else "Rating not available"
-                review["spoiler"] = spoiler.text if spoiler else "No spoilers"
-                review["title"] = cls.findByXpath(paths["title_path"]).text
-                description = cls.get_if_element_exits(paths["des_path"])
-                review["description"] = (
-                    description.text if description else "No description available"
-                )
-                name_date = (
-                    cls.findByXpath(paths["name_date_path"])
-                    .get_attribute("innerText")
-                    .split(" ")
-                )
-                print("new_date", name_date)
-                last_two = name_date[0][len(name_date[0]) - 2 :]
-                date = last_two if last_two.isdigit() else last_two[1]
-                review["name"] = (
-                    name_date[0][: len(name_date[0]) - 2]
-                    if last_two.isdigit()
-                    else name_date[0][: len(name_date[0]) - 1]
-                )
-                review["date"] = f"{date} {name_date[1]} {name_date[2]} "
-                helpfulness = (
-                    cls.findByXpath(paths["helpfulness_path"])
-                    .get_attribute("innerText")
-                    .split(" ")
-                )
-                review["helped_votes"] = helpfulness[0]
-                review["total_votes"] = helpfulness[3]
 
-                reviews_list.append(review)
-            return reviews_list
+                if num_reviews is None:
+
+                    while True:
+                        print("check", len(reviews_list), num_reviews)
+
+                        reviews, upto = Scraper.get_reviews(len(reviews_list))
+                        reviews_list += reviews
+                        up_to.append(upto)
+
+                        if "ipl-load-more--loaded-all" in cls.driver.page_source:
+                            break
+                        else:
+                            button = WebDriverWait(cls.driver, 10).until(
+                                EC.element_to_be_clickable(
+                                    (
+                                        By.XPATH,
+                                        Locator.get_review_detail_paths()[
+                                            "load_more_path"
+                                        ],
+                                    )
+                                )
+                            )
+                            button.click()
+                else:
+
+                    while len(reviews_list) < num_reviews:
+                        print("check", len(reviews_list), num_reviews)
+
+                        reviews, upto = Scraper.get_reviews(
+                            len(reviews_list), asked_for=num_reviews
+                        )
+                        reviews_list += reviews
+                        up_to.append(upto)
+                        if "ipl-load-more--loaded-all" in cls.driver.page_source:
+                            break
+                        else:
+                            button = WebDriverWait(cls.driver, 10).until(
+                                EC.element_to_be_clickable(
+                                    (
+                                        By.XPATH,
+                                        Locator.get_review_detail_paths()[
+                                            "load_more_path"
+                                        ],
+                                    )
+                                )
+                            )
+                            button.click()
+                            # time.sleep(5)
+
+            print("reviews_list", len(reviews_list))
+            on_searched = False
+            return {"reviews": reviews_list, "progress": up_to}
 
         except NoSuchElementException as e:
             raise e
@@ -465,7 +480,66 @@ class Scraper:
             driver = None
             kwd = None
             type = None
-            cls.get_review_details(kwdd, typee)
+            print(e)
+            print("Raising get_review_details again")
+            print("reviews_list", len(reviews_list))
+            cls.get_review_details(kwdd, typee, num_reviews)
+
+    def get_reviews(num_reviews, asked_for=None):
+        paths = Locator.get_review_detail_paths(num_reviews + 1)
+        Scraper.findByXpath(paths["single_review_path"], with_wait=True)
+        reviews = WebDriverWait(Scraper.driver, 10).until(
+            EC.presence_of_all_elements_located(
+                (
+                    By.XPATH,
+                    Locator.get_review_detail_paths()["count_path"],
+                )
+            )
+        )
+        reviews_list = []
+        upto = len(reviews)
+        print("len(reviews)", len(reviews), num_reviews)
+        if asked_for is not None and len(reviews) > asked_for:
+            upto = asked_for
+
+        for i in range(num_reviews, upto):
+            review = {}
+            paths = Locator.get_review_detail_paths(num=i + 1)
+            rating = Scraper.get_if_element_exits(paths["rating_path"])
+            spoiler = Scraper.get_if_element_exits(paths["spoiler_path"])
+            review["rating"] = rating.text if rating else "Rating not available"
+            review["spoiler"] = spoiler.text if spoiler else "No spoilers"
+            review["title"] = Scraper.findByXpath(paths["title_path"]).text
+            description = Scraper.get_if_element_exits(paths["des_path"])
+            review["description"] = (
+                description.text
+                if description and description.text
+                else "No description available"
+            )
+            name_date = (
+                Scraper.findByXpath(paths["name_date_path"])
+                .get_attribute("innerText")
+                .split(" ")
+            )
+            print("new_date", name_date)
+            last_two = name_date[0][len(name_date[0]) - 2 :]
+            date = last_two if last_two.isdigit() else last_two[1]
+            review["name"] = (
+                name_date[0][: len(name_date[0]) - 2]
+                if last_two.isdigit()
+                else name_date[0][: len(name_date[0]) - 1]
+            )
+            review["date"] = f"{date} {name_date[1]} {name_date[2]} "
+            helpfulness = (
+                Scraper.findByXpath(paths["helpfulness_path"])
+                .get_attribute("innerText")
+                .split(" ")
+            )
+            review["helped_votes"] = helpfulness[0]
+            review["total_votes"] = helpfulness[3]
+
+            reviews_list.append(review)
+        return reviews_list, upto
 
     @classmethod
     def get_popularities(cls, kwdd, typee):
@@ -547,8 +621,8 @@ class Scraper:
                 title_info = cls.findByXpath(paths["title_path"]).get_attribute(
                     "innerText"
                 )
-                print('title_info', title_info)
-                rank, title = title_info.split(" ",1)
+                print("title_info", title_info)
+                rank, title = title_info.split(" ", 1)
                 title = title.strip()
                 rank = rank.replace(".", "")
                 rating = cls.findByXpath(paths["rating_path"]).get_attribute(
