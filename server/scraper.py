@@ -1,13 +1,11 @@
 import time
-from black import main
-from regex import W
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, TimeoutException
 from locators import Locator
 from exception_handling import MyException
 
@@ -279,9 +277,11 @@ class Scraper:
             des = "No Description Available"
         return des
 
+    @staticmethod
     def is_max_size():
         return Scraper.driver.get_window_size() == Scraper.size
 
+    @staticmethod
     def get_single_authors(lists, for_writers=None):
         authors = []
         for i in range(len(lists)):
@@ -396,12 +396,15 @@ class Scraper:
             dict["popularity"] = element.text
         return dict
 
+    @staticmethod
     def get_if_element_exits(xpath, with_wait=False):
         element = None
         try:
             element = Scraper.findByXpath(xpath, with_wait=with_wait)
         except NoSuchElementException as e:
-            element = None
+            print(e)
+        except TimeoutException as e:
+            print(e)
         return element
 
     @classmethod
@@ -485,6 +488,7 @@ class Scraper:
             print("reviews_list", len(reviews_list))
             cls.get_review_details(kwdd, typee, num_reviews)
 
+    @staticmethod
     def get_reviews(num_reviews, asked_for=None):
         paths = Locator.get_review_detail_paths(num_reviews + 1)
         Scraper.findByXpath(paths["single_review_path"], with_wait=True)
@@ -645,6 +649,7 @@ class Scraper:
         except Exception as e:
             raise e
 
+    @staticmethod
     def check_if_same_search(kwdd, typee):
         global kwd, type, driver
         return (

@@ -1,6 +1,3 @@
-from turtle import title
-
-
 class Locator:
 
     searchbox_path = "//input[@id='suggestion-search']"
