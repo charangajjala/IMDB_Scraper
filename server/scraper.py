@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, WebDriverException, TimeoutException
 from locators import Locator
 from exception_handling import MyException
+from mydb import  MyDB
 
 
 chrome_executable_path = ChromeDriverManager().install()
@@ -89,6 +90,7 @@ class Scraper:
 
     @classmethod
     def findByClass(cls, cname):
+        
         if cname is None:
             print("findBycname: No cname available")
             raise Exception("No cname available")
@@ -157,7 +159,12 @@ class Scraper:
                 cls.showException("search_keyword: No results for search word", e)
                 raise MyException("404 Not Found", 404)
             cls.openURL(first_a_tag.get_attribute("href"))
-            basic_details = cls.getBasicDetials()
+            db = MyDB()
+            title = cls.get_title()
+            basic_details = db.handle_basic_details(title)
+            if basic_details is None:
+                basic_details = cls.getBasicDetials()
+                db.handle_basic_details(title,basic_details.copy())
             on_searched = True
             return basic_details
 
@@ -584,6 +591,7 @@ class Scraper:
                     pop["change"] = "No change"
 
                 pops_list.append(pop)
+                on_searched = False
             return pops_list
 
         except NoSuchElementException as e:
@@ -634,6 +642,7 @@ class Scraper:
                 )
                 show = {"rating": rating, "title": title, "rank": rank}
                 shows_list.append(show)
+                on_searched = False
             return shows_list
 
         except NoSuchElementException as e:

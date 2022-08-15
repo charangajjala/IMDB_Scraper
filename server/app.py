@@ -34,7 +34,7 @@ def search():
 @app.route("/reviews/<kwd>/<type>", methods=["POST"])
 @cross_origin()
 def reviews(kwd, type):
-    num_reviews = request.json.get("num")
+    num_reviews = request.json.get("num") 
     request_validation(kwd, type)
     if num_reviews is not None:
         if isinstance(num_reviews, str):
