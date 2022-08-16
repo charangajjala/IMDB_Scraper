@@ -5,10 +5,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, WebDriverException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    WebDriverException,
+    TimeoutException,
+)
 from locators import Locator
 from exception_handling import MyException
-from mydb import  MyDB
+from mydb import MyDB
 
 
 chrome_executable_path = ChromeDriverManager().install()
@@ -90,7 +94,7 @@ class Scraper:
 
     @classmethod
     def findByClass(cls, cname):
-        
+
         if cname is None:
             print("findBycname: No cname available")
             raise Exception("No cname available")
@@ -164,7 +168,7 @@ class Scraper:
             basic_details = db.handle_basic_details(title)
             if basic_details is None:
                 basic_details = cls.getBasicDetials()
-                db.handle_basic_details(title,basic_details.copy())
+                db.handle_basic_details(title, basic_details)
             on_searched = True
             return basic_details
 
@@ -415,7 +419,7 @@ class Scraper:
         return element
 
     @classmethod
-    def get_review_details(cls, kwdd, typee, num_reviews):
+    def get_reviews(cls, kwdd, typee, num_reviews):
         global driver, url, on_searched, main_url, kwd, type
 
         if not Scraper.check_if_same_search(kwdd, type):
@@ -428,6 +432,8 @@ class Scraper:
             link = cls.get_if_element_exits(Locator.get_reviews_link_path())
 
             if link:
+                db = MyDB()
+                title = cls.get_title()
                 cls.openURL(link.get_attribute("href"))
 
                 if num_reviews is None:
@@ -435,7 +441,7 @@ class Scraper:
                     while True:
                         print("check", len(reviews_list), num_reviews)
 
-                        reviews, upto = Scraper.get_reviews(len(reviews_list))
+                        reviews, upto = Scraper.get_review_details(len(reviews_list))
                         reviews_list += reviews
                         up_to.append(upto)
 
@@ -453,31 +459,40 @@ class Scraper:
                                 )
                             )
                             button.click()
+                    db.save_reviews(title, reviews_list)
+
                 else:
 
-                    while len(reviews_list) < num_reviews:
-                        print("check", len(reviews_list), num_reviews)
+                    reviews = db.get_reviews(title, num_reviews)
+                    if reviews is None:
 
-                        reviews, upto = Scraper.get_reviews(
-                            len(reviews_list), asked_for=num_reviews
-                        )
-                        reviews_list += reviews
-                        up_to.append(upto)
-                        if "ipl-load-more--loaded-all" in cls.driver.page_source:
-                            break
-                        else:
-                            button = WebDriverWait(cls.driver, 10).until(
-                                EC.element_to_be_clickable(
-                                    (
-                                        By.XPATH,
-                                        Locator.get_review_detail_paths()[
-                                            "load_more_path"
-                                        ],
+                        while len(reviews_list) < num_reviews:
+                            print("check", len(reviews_list), num_reviews)
+
+                            reviews, upto = Scraper.get_review_details(
+                                len(reviews_list), asked_for=num_reviews
+                            )
+                            reviews_list += reviews
+                            up_to.append(upto)
+                            if "ipl-load-more--loaded-all" in cls.driver.page_source:
+                                break
+                            else:
+                                button = WebDriverWait(cls.driver, 10).until(
+                                    EC.element_to_be_clickable(
+                                        (
+                                            By.XPATH,
+                                            Locator.get_review_detail_paths()[
+                                                "load_more_path"
+                                            ],
+                                        )
                                     )
                                 )
-                            )
-                            button.click()
-                            # time.sleep(5)
+                                button.click()
+                                # time.sleep(5)
+
+                        db.save_reviews(title, reviews_list)
+                    else:
+                        reviews_list = reviews
 
             print("reviews_list", len(reviews_list))
             on_searched = False
@@ -491,12 +506,10 @@ class Scraper:
             kwd = None
             type = None
             print(e)
-            print("Raising get_review_details again")
-            print("reviews_list", len(reviews_list))
             cls.get_review_details(kwdd, typee, num_reviews)
 
     @staticmethod
-    def get_reviews(num_reviews, asked_for=None):
+    def get_review_details(num_reviews, asked_for=None):
         paths = Locator.get_review_detail_paths(num_reviews + 1)
         Scraper.findByXpath(paths["single_review_path"], with_wait=True)
         reviews = WebDriverWait(Scraper.driver, 10).until(

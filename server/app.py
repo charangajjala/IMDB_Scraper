@@ -41,7 +41,7 @@ def reviews(kwd, type):
             raise MyException("Number of reviews must not be a string", 400)
         elif num_reviews <= 0:
             raise MyException("Number of reviews should be greater than zero", 400)
-    reviews = Scraper.get_review_details(kwd, type, num_reviews)
+    reviews = Scraper.get_reviews(kwd, type, num_reviews)
     return jsonify(reviews)
 
 
