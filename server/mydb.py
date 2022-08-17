@@ -8,7 +8,7 @@ load_dotenv()
 class MyDB:
     _DB_NAME = "IMDB_Db"
     _Reviews_COLLECTION_NAME = "IMDB_Reviews"
-    _BasicDetials_COLLECTION_NAME = "IMDB_BasicDetials"
+    _BasicDetials_COLLECTION_NAME = "IMDB_BasicDetails"
 
     def __init__(self):
         db = self.give_db()
@@ -55,7 +55,7 @@ class MyDB:
         return self._reviews_collection
 
     def handle_basic_details(self, title, basic_details=None):
-        details = self._basic_details_collection.find_one({"title": title},{"_id":0})
+        details = self._basic_details_collection.find_one({"title": title}, {"_id": 0})
         if basic_details is not None:
             self._basic_details_collection.insert_one(basic_details)
         else:
@@ -63,12 +63,25 @@ class MyDB:
 
     def save_reviews(self, title, parsed_reviews):
         collection = self._reviews_collection
+        if collection.find_one({"title": title}) is None:
+            collection.insert_one({"title": title, "reviews": parsed_reviews})
+
         collection.update_one({"title": title}, {"$set": {"reviews": parsed_reviews}})
 
     def get_reviews(self, title, num_reviews):
-        num = int(num_reviews)
+        num = num_reviews
         collection = self._reviews_collection
-        existing_reviews = collection.find({"title": title},{"reviews._id":0},{"reviews":{"$slice":num}})   
-        if len(existing_reviews) < num_reviews:
+        if collection.find_one({"title": title}) is None:
+            return None
+
+        print('check',collection.find_one(
+            {"title": title}, {"reviews": {"$slice": num}}
+        ))
+        
+        existing_reviews = collection.find_one(
+            {"title": title}, {"reviews": {"$slice": num}}
+        )
+
+        if existing_reviews and len(existing_reviews['reviews']) < num_reviews:
             return None
         return existing_reviews['reviews']

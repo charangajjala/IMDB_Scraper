@@ -168,7 +168,7 @@ class Scraper:
             basic_details = db.handle_basic_details(title)
             if basic_details is None:
                 basic_details = cls.getBasicDetials()
-                db.handle_basic_details(title, basic_details)
+                db.handle_basic_details(title, basic_details.copy())
             on_searched = True
             return basic_details
 
@@ -459,11 +459,12 @@ class Scraper:
                                 )
                             )
                             button.click()
-                    db.save_reviews(title, reviews_list)
+                    db.save_reviews(title, reviews_list.copy())
 
                 else:
 
                     reviews = db.get_reviews(title, num_reviews)
+                   
                     if reviews is None:
 
                         while len(reviews_list) < num_reviews:
@@ -490,7 +491,7 @@ class Scraper:
                                 button.click()
                                 # time.sleep(5)
 
-                        db.save_reviews(title, reviews_list)
+                        db.save_reviews(title, reviews_list.copy())
                     else:
                         reviews_list = reviews
 

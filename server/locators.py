@@ -145,7 +145,7 @@ class Locator:
 
     @classmethod
     def get_reviews_link_path(cls):
-        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="UserReviews"]/div[1]/a[1]'
+        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[@data-testid="UserReviews"]/div/div/a'
         return path
 
     def single_review_path(num):
