@@ -26,7 +26,7 @@ chrome_options.add_argument("--no-sandbox")
 
 kwd = None
 type = None
-driver = None
+
 url = None
 
 main_url = "https://www.imdb.com/"
@@ -41,7 +41,7 @@ class Scraper:
     size = None
     kwd = ""
     type = ""
-    driver = None
+    
 
     def __init__(self, urll):
         global driver, url
@@ -52,7 +52,7 @@ class Scraper:
             )
             DRIVER.maximize_window()
             Scraper.size = DRIVER.get_window_size()
-            driver = DRIVER
+           
             Scraper.driver = DRIVER
             Scraper.openURL(urll)
             url = urll
@@ -147,8 +147,7 @@ class Scraper:
         typee,
     ):
         global main_url, on_searched, driver
-        if driver:
-            driver.close()
+       
         Scraper(main_url)
         try:
             cls.kwd = kwdd
@@ -181,7 +180,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            driver = None
+            
             kwd = None
             type = None
             cls.search_keyword(kwdd, typee)
@@ -425,7 +424,7 @@ class Scraper:
 
     @classmethod
     def get_reviews(cls, kwdd, typee, num_reviews):
-        global driver, url, on_searched, main_url, kwd, type
+        global  url, on_searched, main_url, kwd, type
 
         if not Scraper.check_if_same_search(kwdd, type):
             cls.search_keyword(kwdd, typee)
@@ -508,7 +507,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            driver = None
+           
             kwd = None
             type = None
             print(e)
@@ -573,7 +572,7 @@ class Scraper:
 
     @classmethod
     def get_popularities(cls, kwdd, typee):
-        global driver, kwd, type
+        global  kwd, type
         if typee == "tv_episode":
             raise MyException("No popularity for episodes", 404)
         if not Scraper.check_if_same_search(kwdd, typee):
@@ -617,7 +616,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            driver = None
+            
             kwd = None
             type = None
             cls.get_popularities(kwdd, typee)
@@ -636,7 +635,7 @@ class Scraper:
 
     @classmethod
     def get_toprated_shows(cls, kwdd, typee):
-        global driver, kwd, type
+        global  kwd, type
         if typee == "tv_episode":
             raise MyException("No top ratings for episodes", 404)
         if not Scraper.check_if_same_search(kwdd, typee):
@@ -668,7 +667,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            driver = None
+            
             kwd = None
             type = None
             cls.get_toprated_shows(kwdd, typee)
@@ -683,7 +682,7 @@ class Scraper:
         return (
             kwd is not None
             and type is not None
-            and driver is not None
+            
             and kwd == kwdd
             and type == typee
             and on_searched is True
