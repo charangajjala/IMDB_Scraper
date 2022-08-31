@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import cross_origin
 from scraper import Scraper
 from exception_handling import MyException, error_handler, request_validation
+import werkzeug
 
 
 app = Flask(__name__)
@@ -34,7 +35,7 @@ def search():
 @app.route("/reviews/<kwd>/<type>", methods=["POST"])
 @cross_origin()
 def reviews(kwd, type):
-    num_reviews = request.json.get("num") 
+    num_reviews = request.json.get("num")
     request_validation(kwd, type)
     if num_reviews is not None:
         if isinstance(num_reviews, str):
@@ -66,10 +67,12 @@ def handle(err):
     return error_handler(err)
 
 
-@app.errorhandler(500)
+@app.errorhandler(werkzeug.exceptions.HTTPException)
 def handle(err):
-    return jsonify({"msg": str(err)}), 500
+    print(err)
+    return jsonify({"msg": "Server Error"}), err.code
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    is_debug = False   # True in development mode
+    app.run(debug=is_debug)

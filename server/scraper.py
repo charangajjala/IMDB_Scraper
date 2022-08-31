@@ -369,7 +369,7 @@ class Scraper:
                 years = year.split("–")
                 print("years", year, years)
                 dict = {}
-                if years[1]:
+                if len(years)>1:
                     dict["released_in"] = years[0]
                     dict["ended_in"] = years[1]
                 else:
