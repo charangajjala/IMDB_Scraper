@@ -396,7 +396,7 @@ class Scraper:
             print("rating", element.get_attribute("innerText"))
             text = element.get_attribute("innerText")
             texts = text.split("\n")
-            dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[2]}
+            dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[1]}
         else:
             print("rating", None)
     
