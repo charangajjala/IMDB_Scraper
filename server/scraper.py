@@ -10,9 +10,9 @@ from selenium.common.exceptions import (
     WebDriverException,
     TimeoutException,
 )
-from locators import Locator
-from exception_handling import MyException
-from mydb import MyDB
+from .locators import Locator
+from .exception_handling import MyException
+from .mydb import MyDB
 
 
 chrome_executable_path = ChromeDriverManager().install()
