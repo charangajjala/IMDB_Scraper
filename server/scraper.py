@@ -46,7 +46,7 @@ class Scraper:
         global driver, url
         try:
             DRIVER = webdriver.Chrome(
-                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                executable_path=ChromeDriverManager().install(),
                 chrome_options=chrome_options,
             )
             DRIVER.maximize_window()
