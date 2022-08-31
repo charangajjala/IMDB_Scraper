@@ -400,7 +400,7 @@ class Scraper:
             dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[2]}
         else:
             print("rating", None)
-
+    
         return dict
 
     @classmethod
@@ -643,7 +643,7 @@ class Scraper:
             cls.search_keyword(kwdd, typee)
         try:
             cls.openURL(
-                f"https://www.imdb.com/chart/top{typee if typee=='tv' else ''}?ref_=tt_awd"
+                f"https://www.imdb.com/chart/top{typee if typee=='tv' else ''}"
             )
             shows = cls.findByXpathMany(Locator.get_topshows_paths())
             shows_list = []
