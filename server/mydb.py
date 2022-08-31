@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
+db_url = f'mongodb+srv://charan:{os.environ.get("db_password")}@cluster0.byeold1.mongodb.net/?retryWrites=true&w=majority'
 
 
 class MyDB:
@@ -20,8 +21,8 @@ class MyDB:
         )
 
     def give_client(self):
-        print(os.environ.get("db_connection_url"))
-        client = pymongo.MongoClient(os.environ.get("db_connection_url"))
+
+        client = pymongo.MongoClient(db_url)
         return client
 
     def give_db(self):
@@ -74,14 +75,14 @@ class MyDB:
         if collection.find_one({"title": title}) is None:
             return None
 
-        print('check',collection.find_one(
-            {"title": title}, {"reviews": {"$slice": num}}
-        ))
-        
+        print(
+            "check", collection.find_one({"title": title}, {"reviews": {"$slice": num}})
+        )
+
         existing_reviews = collection.find_one(
             {"title": title}, {"reviews": {"$slice": num}}
         )
 
-        if existing_reviews and len(existing_reviews['reviews']) < num_reviews:
+        if existing_reviews and len(existing_reviews["reviews"]) < num_reviews:
             return None
-        return existing_reviews['reviews']
+        return existing_reviews["reviews"]
