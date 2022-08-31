@@ -16,7 +16,7 @@ from .mydb import MyDB
 import os
 
 
-# chrome_executable_path = ChromeDriverManager().install()
+chrome_executable_path = ChromeDriverManager().install()
 chrome_options = webdriver.ChromeOptions()
 chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 chrome_options.add_argument("--headless")
@@ -47,7 +47,7 @@ class Scraper:
         global driver, url
         try:
             DRIVER = webdriver.Chrome(
-                executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                executable_path=chrome_executable_path,
                 chrome_options=chrome_options,
             )
             DRIVER.maximize_window()
