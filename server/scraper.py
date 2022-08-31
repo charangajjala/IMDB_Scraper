@@ -395,7 +395,7 @@ class Scraper:
         if element is not None:
             print("rating", element.get_attribute("innerText"))
             text = element.get_attribute("innerText")
-            texts = text.split("\n")
+            texts = text.split("/")
             dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[1]}
         else:
             print("rating", None)
