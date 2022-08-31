@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import cross_origin
-from scraper import Scraper
-from exception_handling import MyException, error_handler, request_validation
+from server.scraper import Scraper
+from server.exception_handling import MyException, error_handler, request_validation
 import werkzeug
 
 
