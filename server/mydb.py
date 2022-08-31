@@ -11,7 +11,7 @@ class MyDB:
     _Reviews_COLLECTION_NAME = "IMDB_Reviews"
     _BasicDetials_COLLECTION_NAME = "IMDB_BasicDetails"
 
-    def __init__(self):
+    def __init__(self): 
         db = self.give_db()
         self._basic_details_collection = self.give_collection(
             db, MyDB._BasicDetials_COLLECTION_NAME

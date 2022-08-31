@@ -13,10 +13,7 @@ from selenium.common.exceptions import (
 from .locators import Locator
 from .exception_handling import MyException
 from .mydb import MyDB
-from dotenv import load_dotenv
 import os
-
-load_dotenv()
 
 
 # chrome_executable_path = ChromeDriverManager().install()
@@ -33,6 +30,8 @@ url = None
 
 main_url = "https://www.imdb.com/"
 on_searched = None
+
+print(os.environ.get("CHROMEDRIVER_PATH"))
 
 
 class Scraper:
@@ -374,7 +373,7 @@ class Scraper:
                 years = year.split("–")
                 print("years", year, years)
                 dict = {}
-                if len(years)>1:
+                if len(years) > 1:
                     dict["released_in"] = years[0]
                     dict["ended_in"] = years[1]
                 else:
@@ -469,7 +468,7 @@ class Scraper:
                 else:
 
                     reviews = db.get_reviews(title, num_reviews)
-                   
+
                     if reviews is None:
 
                         while len(reviews_list) < num_reviews:
