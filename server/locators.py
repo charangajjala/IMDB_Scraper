@@ -198,5 +198,5 @@ class Locator:
 
     @classmethod
     def get_top_rating_path(cls):
-        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[1]/div[@data-testid="awards"]/div'
+        path = '//*[@id="__next"]/main/div/section[1]/div/section/div/div[1]/section[1]/div[@data-testid="awards"]/div/a[@data-testid="award_top-rated"]'
         return path
