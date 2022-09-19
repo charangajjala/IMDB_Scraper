@@ -10,29 +10,24 @@ from selenium.common.exceptions import (
     WebDriverException,
     TimeoutException,
 )
-from .locators import Locator
-from .exception_handling import MyException
-from .mydb import MyDB
-import os
+from locators import Locator
+from exception_handling import MyException
+from mydb import MyDB
 
 
-#chrome_executable_path = ChromeDriverManager().install()
+chrome_executable_path = ChromeDriverManager().install()
 chrome_options = webdriver.ChromeOptions()
-chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--no-sandbox") 
-
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("disable-dev-shm-usage")
 
 kwd = None
 type = None
-
+driver = None
 url = None
 
 main_url = "https://www.imdb.com/"
 on_searched = None
-
-print(os.environ.get("CHROMEDRIVER_PATH"))
 
 
 class Scraper:
@@ -41,18 +36,18 @@ class Scraper:
     size = None
     kwd = ""
     type = ""
-    
+    driver = None
 
     def __init__(self, urll):
         global driver, url
         try:
             DRIVER = webdriver.Chrome(
-                executable_path=ChromeDriverManager().install(),
+                executable_path=chrome_executable_path,
                 chrome_options=chrome_options,
             )
             DRIVER.maximize_window()
             Scraper.size = DRIVER.get_window_size()
-           
+            # driver = DRIVER
             Scraper.driver = DRIVER
             Scraper.openURL(urll)
             url = urll
@@ -147,7 +142,8 @@ class Scraper:
         typee,
     ):
         global main_url, on_searched, driver
-       
+        if driver:
+            driver.close()
         Scraper(main_url)
         try:
             cls.kwd = kwdd
@@ -180,7 +176,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            
+            driver = None
             kwd = None
             type = None
             cls.search_keyword(kwdd, typee)
@@ -373,7 +369,7 @@ class Scraper:
                 years = year.split("–")
                 print("years", year, years)
                 dict = {}
-                if len(years) > 1:
+                if len(years)>1:
                     dict["released_in"] = years[0]
                     dict["ended_in"] = years[1]
                 else:
@@ -395,11 +391,11 @@ class Scraper:
         if element is not None:
             print("rating", element.get_attribute("innerText"))
             text = element.get_attribute("innerText")
-            texts = text.split("/")
-            dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[1]}
+            texts = text.split("\n")
+            dict["rating_info"] = {"rating": texts[0], "no_ratings": texts[2]}
         else:
             print("rating", None)
-    
+
         return dict
 
     @classmethod
@@ -424,7 +420,7 @@ class Scraper:
 
     @classmethod
     def get_reviews(cls, kwdd, typee, num_reviews):
-        global  url, on_searched, main_url, kwd, type
+        global driver, url, on_searched, main_url, kwd, type
 
         if not Scraper.check_if_same_search(kwdd, type):
             cls.search_keyword(kwdd, typee)
@@ -468,7 +464,7 @@ class Scraper:
                 else:
 
                     reviews = db.get_reviews(title, num_reviews)
-
+                   
                     if reviews is None:
 
                         while len(reviews_list) < num_reviews:
@@ -507,7 +503,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-           
+            driver = None
             kwd = None
             type = None
             print(e)
@@ -572,7 +568,7 @@ class Scraper:
 
     @classmethod
     def get_popularities(cls, kwdd, typee):
-        global  kwd, type
+        global driver, kwd, type
         if typee == "tv_episode":
             raise MyException("No popularity for episodes", 404)
         if not Scraper.check_if_same_search(kwdd, typee):
@@ -616,7 +612,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            
+            driver = None
             kwd = None
             type = None
             cls.get_popularities(kwdd, typee)
@@ -635,14 +631,14 @@ class Scraper:
 
     @classmethod
     def get_toprated_shows(cls, kwdd, typee):
-        global  kwd, type
+        global driver, kwd, type
         if typee == "tv_episode":
             raise MyException("No top ratings for episodes", 404)
         if not Scraper.check_if_same_search(kwdd, typee):
             cls.search_keyword(kwdd, typee)
         try:
             cls.openURL(
-                f"https://www.imdb.com/chart/top{typee if typee=='tv' else ''}"
+                f"https://www.imdb.com/chart/top{typee if typee=='tv' else ''}?ref_=tt_awd"
             )
             shows = cls.findByXpathMany(Locator.get_topshows_paths())
             shows_list = []
@@ -667,7 +663,7 @@ class Scraper:
             raise e
 
         except WebDriverException as e:
-            
+            driver = None
             kwd = None
             type = None
             cls.get_toprated_shows(kwdd, typee)
@@ -682,7 +678,7 @@ class Scraper:
         return (
             kwd is not None
             and type is not None
-            
+            and driver is not None
             and kwd == kwdd
             and type == typee
             and on_searched is True
