@@ -10,12 +10,12 @@ from selenium.common.exceptions import (
     WebDriverException,
     TimeoutException,
 )
-from locators import Locator
-from exception_handling import MyException
-from mydb import MyDB
+from .locators import Locator
+from .exception_handling import MyException
+from .mydb import MyDB
 
 
-chrome_executable_path = ChromeDriverManager().install()
+# chrome_executable_path = ChromeDriverManager().install()
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
@@ -42,7 +42,7 @@ class Scraper:
         global driver, url
         try:
             DRIVER = webdriver.Chrome(
-                executable_path=chrome_executable_path,
+                executable_path=ChromeDriverManager().install(),
                 chrome_options=chrome_options,
             )
             DRIVER.maximize_window()
