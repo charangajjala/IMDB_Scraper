@@ -47,7 +47,7 @@ class Scraper:
             )
             DRIVER.maximize_window()
             Scraper.size = DRIVER.get_window_size()
-            driver = DRIVER
+            # driver = DRIVER
             Scraper.driver = DRIVER
             Scraper.openURL(urll)
             url = urll
