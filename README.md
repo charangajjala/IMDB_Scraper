@@ -1,28 +1,30 @@
 
 # IMDB Scraper
 
+![Python](https://img.shields.io/badge/Python-3.6-blueviolet)
+![Framework](https://img.shields.io/badge/Framework-Flask-red)
+![Data Base](https://img.shields.io/badge/Database-MongoDb-yellow)
+![Library](https://img.shields.io/badge/Library-Selenium-green)
+![Front End](https://img.shields.io/badge/Framework-ReactJs-blue)
 
 A web scraper project which extracts various details of movies, episodes and tv shows from the official IMDB website.
 
-## Demo
+# Demo
 
 * API Link : [https://imdb--scraper.herokuapp.com/](https://imdb--scraper.herokuapp.com/)
 * Use a client service like [Post Man](https://www.postman.com/downloads/) for testing the [API](#demo)
-#### Basic Details
+Basic Details
 * API Demo
-![Test](https://im4.ezgif.com/tmp/ezgif-4-a194e32433.gif)
-* Data Base sample
-![Test](https://im4.ezgif.com/tmp/ezgif-4-d989ab5a6d.gif)
+![2022-10-18](https://user-images.githubusercontent.com/64437927/196725924-4863453a-2113-4eee-917a-79c45bca590b.png)
 
-#### Reviews sample
+* Data Base Demo
+![2022-10-18 (1)](https://user-images.githubusercontent.com/64437927/196726112-da1a693b-5709-433f-87e7-5a888d40d0fa.png)
+
+Reviews sample
 * API Demo
-![Test](https://im4.ezgif.com/tmp/ezgif-4-b8674a891f.gif)
+![2022-10-18 (3)](https://user-images.githubusercontent.com/64437927/196726269-9b0bfa9a-0a7c-4732-a411-458775e6fb54.png)
 * DB demo
-![Test](https://im4.ezgif.com/tmp/ezgif-4-acfd474fb5.gif)
-
-
-
-
+![2022-10-18 (2)](https://user-images.githubusercontent.com/64437927/196726462-e320b031-a082-49fb-9c7b-7ad646cbe7db.png)
 
 ## API Reference
 
