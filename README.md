@@ -12,7 +12,8 @@ A web scraper project which extracts various details of movies, episodes and tv 
 # Demo
 
 * API Link : [https://imdb--scraper.herokuapp.com/](https://imdb--scraper.herokuapp.com/)
-* Use a client service like [Post Man](https://www.postman.com/downloads/) for testing the [API](#demo)
+* Use a client service like [Post Man](https://www.postman.com/downloads/) for testing the [API](#demo)  
+
 Basic Details
 * API Demo
 ![2022-10-18](https://user-images.githubusercontent.com/64437927/196725924-4863453a-2113-4eee-917a-79c45bca590b.png)
